@@ -1,0 +1,38 @@
+{
+    "name": "jpenaroche/omnipay-cobrosya",
+    "type": "library",
+    "description": "CobrosYa gateway for OmniPay and OctoberCMS - Shopaholic",
+    "keywords": [
+        "cobrosya",
+        "mp",
+        "gateway",
+        "merchant",
+        "omnipay",
+        "shopaholic",
+        "pay",
+        "payment",
+        "PHPeste"
+    ],
+    "homepage": "https://github.com/jpenaroche/omnipay-cobrosya",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "José A. Peñarroche Delgado",
+            "email": "jpenaroche@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Omnipay\\CobrosYa\\" : "src/" }
+    },
+    "require": {
+        "omnipay/common": "~2.0"
+    },
+    "require-dev": {
+        "omnipay/tests": "~2.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0"
+        }
+    }
+}
