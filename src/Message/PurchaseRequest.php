@@ -3,6 +3,7 @@
 namespace Omnipay\CobrosYa\Message;
 
 use Omnipay\Common\Exception\InvalidCreditCardException;
+use Omnipay\Common\Exception\InvalidRequestException;
 
 class PurchaseRequest extends AbstractRequest
 {
@@ -10,13 +11,13 @@ class PurchaseRequest extends AbstractRequest
     {
         if(!$this->getCard())
             throw new InvalidCreditCardException("There is no credit card information on request", 1);
-            
+
         $purchaseObject['id_transaccion'] = $this->getDescription();
         $purchaseObject['nombre'] = $this->getCard()->getFirstName();
         $purchaseObject['apellido'] = $this->getCard()->getLastName();
         $purchaseObject['email'] = $this->getCard()->getEmail();
         $purchaseObject['concepto'] = 'Cobro Web Ecommerce';
-        $purchaseObject['celular'] = $this->getCard()->getNumber();
+        $purchaseObject['celular'] = $this->getCard()->getPhone();
         $purchaseObject['moneda'] = $this->getCurrency();
         $purchaseObject['monto'] = (double)($this->formatCurrency($this->getAmount()));
         $purchaseObject['url_respuesta'] = $this->getReturnUrl();
@@ -45,6 +46,7 @@ class PurchaseRequest extends AbstractRequest
             if (!isset($value) || $value === '') {
                 throw new InvalidRequestException("The $key parameter is required on CobrosYa request data");
             }
+
         }
     }
 

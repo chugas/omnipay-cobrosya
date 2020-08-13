@@ -13,7 +13,8 @@ class PurchaseResponse extends AbstractResponse
 
     public function isSuccessful()
     {
-        return isset($this->data->error) && $this->data->error;
+//        return isset($this->data->error) && ($this->data->error == 0);
+        return true;
     }
 
     /**
@@ -22,6 +23,9 @@ class PurchaseResponse extends AbstractResponse
      */
     public function isRedirect()
     {
+//        if(in_array($this->getRequest()->getPaymentMethod(),PAYMENT_METHODS['offline']))
+//            return true;
+
         return true;
     }
 
@@ -40,9 +44,21 @@ class PurchaseResponse extends AbstractResponse
         if ($this->isRedirect()) {
             if(in_array($this->getRequest()->getPaymentMethod(),PAYMENT_METHODS['offline']))
                 return $this->data->url_pdf;
-                
-            return $this->getRequest()->getTestMode() ? $this->testEndpoint: $this->liveEndpoint;
+
+            return url("/checkout");
+
         }
+
+    }
+
+    public function getTransactionReference()
+    {
+        return $this->getRequest()->getParameters()["access_token"];
+    }
+
+    public function getTransactionId()
+    {
+        return $this->getRequest()->getDescription();
     }
 
 }
