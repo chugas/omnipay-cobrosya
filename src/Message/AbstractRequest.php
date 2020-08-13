@@ -2,6 +2,8 @@
 
 namespace Omnipay\CobrosYa\Message;
 
+require_once __DIR__.'/../payment_methods.php';
+
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Exception\InvalidResponseException;
 
@@ -9,6 +11,9 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
 {
     protected $liveEndpoint = 'https://api.cobrosya.com/v4/crear';
     protected $testEndpoint = 'http://api-sandbox.cobrosya.com/v4/crear';
+
+    protected $liveEndpointCobrar = 'https://api.cobrosya.com/v4/cobrar';
+    protected $testEndpointCobrar = 'http://api-sandbox.cobrosya.com/v4/cobrar';
 
     public function sendData($data)
     {
@@ -32,7 +37,33 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
 
         $response = $httpRequest->send();
 
-        return $this->createResponse($this->checkResponse($response));
+        $result = $this->checkResponse($response);
+
+        if(in_array($this->getPaymentMethod(),PAYMENT_METHODS['offline'])){
+
+            return $this->createResponse($result);
+
+        }else{
+            foreach (PAYMENT_METHODS['online'] as $key => $value) {
+                if ($value === $this->getPaymentMethod()) {
+                    $id_medio_pago = $key;
+                }
+            }
+
+            $data = [
+                '$params' => [
+                    'nro_talon' => (int)$result->nro_talon,
+                    'id_medio_pago' => $id_medio_pago,
+                    'cuotas' => 1
+                ],
+                '$url' => $this->getEndpointCobrar(),
+                'online'    =>  true
+            ];
+
+            return $this->createResponse($data);
+
+        }
+
     }
 
     private function checkResponse($response)
@@ -41,7 +72,7 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
             throw new InvalidResponseException('Unable to conctact CobrosYa server.');
 
         $result = $response->xml();
-        switch ($result->error) {
+        switch ((int)$result->error) {
             case 1:
                 throw new InvalidResponseException('There are some required fields that are missing.');
                 break;
@@ -71,8 +102,9 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
                 break;
         }
 
-        if(!in_array($this->getPaymentMethod(),explode(',',$result->mediosdepago)))
-            throw new InvalidResponseException(sprintf('Transaction nro. %s has been already cashed.',$result->nro_talon));
+//        if(!in_array($this->getPaymentMethod(),explode(',',$result->mediosdepago))){
+//            throw new InvalidResponseException(sprintf('Transaction nro. %s has been already cashed.',$result->nro_talon));
+//        }
 
         return $result;
     }
@@ -102,6 +134,11 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
         return $this->getTestMode() ? $this->testEndpoint : $this->liveEndpoint;
     }
 
+    protected function getEndpointCobrar()
+    {
+        return $this->getTestMode() ? $this->testEndpointCobrar : $this->liveEndpointCobrar;
+    }
+
     public function toJSON($data, $options = 0)
     {
         if (version_compare(phpversion(), '5.4.0', '>=') === true) {
@@ -119,4 +156,5 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
             }
         }
     }
+
 }
